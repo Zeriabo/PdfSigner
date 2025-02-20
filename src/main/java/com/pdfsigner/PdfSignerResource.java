@@ -17,8 +17,10 @@ public class PdfSignerResource {
 
     @POST
     @Path("/sign")
-    public Response signPdf(@FormParam("file") File file) throws Exception {
-        File signedPdfPath = pdfSignerService.signPdf(file);
+    public Response signPdf(@FormParam("file") File file, @FormParam("name") String name,
+            @FormParam("reason") String reason, @FormParam("location") String location)
+            throws Exception {
+        File signedPdfPath = pdfSignerService.signPdf(file, name, reason, location);
         return Response.ok().entity("Signed PDF: " + signedPdfPath).build();
     }
 }
