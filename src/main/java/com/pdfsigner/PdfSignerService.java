@@ -5,9 +5,21 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
 
 import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.security.*;
 import java.security.cert.Certificate;
 import java.util.Base64;
+import java.util.Calendar;
+import java.util.Locale;
+
+import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.tsp.TimeStampRequest;
+import org.bouncycastle.tsp.TimeStampRequestGenerator;
+import org.bouncycastle.tsp.TimeStampResponse;
+import org.bouncycastle.tsp.TimeStampToken;
+import org.bouncycastle.tsp.TSPException;
 
 @ApplicationScoped
 public class PdfSignerService {
@@ -47,6 +59,7 @@ public class PdfSignerService {
             signature.setName(name);
             signature.setReason(reason);
             signature.setLocation(location);
+            signature.setSignDate(Calendar.getInstance());
 
             document.addSignature(signature, content -> {
                 try {
@@ -59,7 +72,10 @@ public class PdfSignerService {
                         sig.update(buffer, 0, bytesRead);
                     }
 
-                    return sig.sign();
+                    byte[] signedData = sig.sign();
+
+                    return signedData;
+
                 } catch (Exception e) {
                     throw new IOException("Error during signature process", e);
                 }
@@ -71,15 +87,4 @@ public class PdfSignerService {
         return signedFile;
     }
 
-    private String getDocumentHash(File documentFile) throws Exception {
-        MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        try (FileInputStream fis = new FileInputStream(documentFile)) {
-            byte[] byteArray = new byte[8192];
-            int bytesRead;
-            while ((bytesRead = fis.read(byteArray)) != -1) {
-                digest.update(byteArray, 0, bytesRead);
-            }
-        }
-        return Base64.getEncoder().encodeToString(digest.digest());
-    }
 }
